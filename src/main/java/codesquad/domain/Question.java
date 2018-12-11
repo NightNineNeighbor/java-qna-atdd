@@ -95,19 +95,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void update(User loginUser, Question question) {
-        isSameWriter(loginUser);
-        this.title = question.title;
-        this.contents = question.contents;
+        if(this.writer.equals(loginUser)) {
+            this.title = question.title;
+            this.contents = question.contents;
+        }
+        throw new UnAuthorizedException();
     }
 
     public void delete(User loginUser) {
-        isSameWriter(loginUser);
-        this.deleted = true;
+        if(this.writer.equals(loginUser)){
+            this.deleted = true;
+        }
+        throw new UnAuthorizedException();
     }
 
-    private void isSameWriter(User loginUser) {
-        if (!this.writer.equals(loginUser)) {
-            throw new UnAuthorizedException();
-        }
+    public boolean equalsTitleAndContents(Question question) {
+        return this.title.equals(question.title) && this.contents.equals(question.contents);
     }
 }

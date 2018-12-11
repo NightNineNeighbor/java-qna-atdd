@@ -1,5 +1,6 @@
 package codesquad.domain;
 
+import codesquad.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -25,6 +26,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer() {
     }
 
+    public Answer(String contents) {
+        this.contents = contents;
+    }
+
     public Answer(User writer, String contents) {
         this.writer = writer;
         this.contents = contents;
@@ -36,6 +41,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.question = question;
         this.contents = contents;
         this.deleted = false;
+    }
+
+    public Answer(User loginUser, Question question, String contents) {
+        this.writer = loginUser;
+        this.question = question;
+        this.contents = contents;
     }
 
     public User getWriter() {
@@ -75,5 +86,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
+    }
+
+    public void update(User loginUser, String contents) throws UnAuthorizedException {
+        if(this.writer.equals(loginUser)){
+            this.contents = contents;
+        }
+        throw new UnAuthorizedException();
     }
 }
