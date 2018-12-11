@@ -13,16 +13,12 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        String title = "ttt";
-        String contents = "ccc";
-        ResponseEntity<Void> response = basicAuthTemplate()
-                .postForEntity("/api/questions/", new Question(title, contents), Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
+        Question newQuestion = new Question("ttt", "ccc");
+        String location = createResourceByDefaultUser("/api/questions", newQuestion);
 
-        Question dbQuestion = template().getForObject(location, Question.class);
-        softly.assertThat(dbQuestion.getTitle()).isEqualTo(title);
-        softly.assertThat(dbQuestion.getContents()).isEqualTo(contents);
+        Question dbQuestion = getResource(location, Question.class);
+        softly.assertThat(dbQuestion.getTitle()).isEqualTo(newQuestion.getTitle());
+        softly.assertThat(dbQuestion.getContents()).isEqualTo(newQuestion.getContents());
         softly.assertThat(dbQuestion.getWriter()).isEqualTo(defaultUser());
     }
 
@@ -36,17 +32,14 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show() throws Exception {
-        Question dbQuestion = template().getForObject("/api/questions/1", Question.class);
+        Question dbQuestion = getResource("/api/questions/1", Question.class);
         softly.assertThat(dbQuestion).isEqualTo(defaultQuestion());
     }
 
     @Test
     public void update() {
         Question newQuestion = new Question("new title", "new contents");
-        ResponseEntity<Void> response = basicAuthTemplate().
-                postForEntity("/api/questions", newQuestion, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String location = createResourceByDefaultUser("/api/questions", newQuestion);
 
         Question updateQuestion = new Question("update title", "update contents");
         ResponseEntity<Question> responseEntity = basicAuthTemplate().
@@ -59,20 +52,15 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     @Test
     public void createAnswer() {
         String newContents = "new Contents";
-        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions/1/answers", newContents, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String location = createResourceByDefaultUser("/api/questions/1/answers", newContents);
 
-        Answer savedAnswer = template().getForObject(location, Answer.class);
+        Answer savedAnswer = getResource(location, Answer.class);
         softly.assertThat(savedAnswer.getContents()).isEqualTo(newContents);
     }
 
     @Test
     public void updateAnswer(){
-        ResponseEntity<Void> response =
-                basicAuthTemplate().postForEntity("/api/questions/1/answers", "new contents", Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String location = createResourceByDefaultUser("/api/questions/1/answers", "new contents");
 
         String updateContents = "update contents";
         ResponseEntity<Answer> responseEntity = basicAuthTemplate()
@@ -80,6 +68,18 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(responseEntity.getBody().getContents()).isEqualTo(updateContents);
+    }
+
+    private String createResourceByDefaultUser(String url, Object bodyPayload) {
+        ResponseEntity<Void> response =
+                basicAuthTemplate().postForEntity(url, bodyPayload, Void.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return response.getHeaders().getLocation().getPath();
+
+    }
+
+    private <T> T getResource(String url, Class<T> type) {
+        return template().getForObject(url, type);
     }
 
     private HttpEntity createHttpEntity(Object body) {

@@ -94,10 +94,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 
-    public void update(User loginUser, Question question) {
+    public Question update(User loginUser, Question question) {
         if(this.writer.equals(loginUser)) {
             this.title = question.title;
             this.contents = question.contents;
+            return this;
         }
         throw new UnAuthorizedException();
     }

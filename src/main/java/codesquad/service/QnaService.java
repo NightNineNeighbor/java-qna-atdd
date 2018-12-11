@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Optional;
 
 @Service("qnaService")
 public class QnaService {
@@ -39,8 +38,8 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
         Question question = findById(id);
-        question.update(loginUser, updatedQuestion);
-        return questionRepository.save(question);
+        return question.update(loginUser, updatedQuestion);
+//        return questionRepository.save(question);
     }
 
     @Transactional
@@ -61,6 +60,7 @@ public class QnaService {
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = questionRepository.findById(questionId).orElseThrow(CannotFindException::new);
         Answer answer = new Answer(loginUser, question, contents);
+//        Answer answer = new An
         return answerRepository.save(answer);
     }
 
@@ -77,9 +77,9 @@ public class QnaService {
         return null;
     }
 
+    @Transactional
     public Answer updateAnswer(User loginUser, long answerId, String contents) {
         Answer answer = answerRepository.findById(answerId).orElseThrow(CannotFindException::new);
-        answer.update(loginUser, contents);
-        return answerRepository.save(answer);
+        return answer.update(loginUser, contents);
     }
 }
